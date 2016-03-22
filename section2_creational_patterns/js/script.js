@@ -1,16 +1,27 @@
 (function (win, $) {
-    var RedCircle = function () {
-          this.item = $('<div class="circle"></div>');
-      },
-      BlueCircle = function () {
-          this.item = $('<div class="circle" style="background: blue;"></div>');
-      },
-      CircleFactory = function () {
-          this.create = function (color) {
-              if (color === 'blue') {
-                  return new BlueCircle();
-              } else {
-                  return new RedCircle();
+    function RedCircle() {
+
+    }
+    RedCircle.prototype.create = function () {
+        this.item = $('<div class="circle"></div>');
+        return this;
+    };
+    function BlueCircle() {
+
+    }
+    BlueCircle.prototype.create = function () {
+        this.item = $('<div class="circle" style="background: blue;"></div>');
+        return this;
+    };
+
+    var CircleFactory = function () {
+          this.types = {};
+          this.create = function (type) {
+              return new this.types[type]().create();
+          };
+          this.register = function(type, cls) {
+              if(cls.prototype.create) {
+                  this.types[type] = cls;
               }
           };
       },
@@ -22,14 +33,16 @@
               var _aCircle = [],
                 _stage = $('.advert'),
                 _cf = new CircleFactory();
+              _cf.register('red', RedCircle);
+              _cf.register('blue', BlueCircle);
 
               function _position(circle, left, top) {
                   circle.css('left', left);
                   circle.css('top', top);
               }
 
-              function create(left, top, color) {
-                  var circle = _cf.create(color).item;
+              function create(left, top, type) {
+                  var circle = _cf.create(type).item;
                   _position(circle, left, top);
                   return circle;
               }
@@ -70,7 +83,7 @@
             if (e.key === 'a') {
                 var cg = CircleGeneratorSingleton.getInstance(),
                   circle = cg.create(Math.floor(Math.random() * 600),
-                    Math.floor(Math.random() * 600));
+                    Math.floor(Math.random() * 600), 'red');
                 cg.add(circle);
             }
 
