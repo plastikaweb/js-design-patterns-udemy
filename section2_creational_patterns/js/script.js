@@ -57,75 +57,94 @@
         return this.item;
     };
 
+    //SHAPE FACTORY
     var ShapeFactory = function () {
-          this.types = {};
-          this.create = function (type) {
-              return new this.types[type]().get();
-          };
-          this.register = function (type, cls) {
-              if (cls.prototype.init && cls.prototype.get) {
-                  this.types[type] = cls;
-              }
-          };
-      },
+        this.types = {};
+        this.create = function (type) {
+            return new this.types[type]().get();
+        };
+        this.register = function (type, cls) {
+            if (cls.prototype.init && cls.prototype.get) {
+                this.types[type] = cls;
+            }
+        };
+    };
+    //STAGE ADAPTER
+    function StageAdapter(id) {
+        this.index = 0;
+        this.context = $(id);
+    }
 
-      CircleGeneratorSingleton = (function () {
-          var instance;
+    StageAdapter.prototype.SIG = 'stageItem_';
+    StageAdapter.prototype.add = function (item) {
+        ++this.index;
+        item.addClass(this.SIG + this.index);
+        this.context.append(item);
+    };
+    StageAdapter.prototype.remove = function (item) {
+        this.context.remove('.' + this.SIG + this.index);
+    };
 
-          function init() {
-              var _aCircle = [],
-                _stage,
-                _sf = new ShapeFactory();
+    //SINGLETON GENERATOR
+    var CircleGeneratorSingleton = (function () {
+        var instance;
 
-              function registerShape(name, cls) {
-                  _sf.register(name, cls);
-              }
-                function setStage(stg) {
-                    _stage = stg;
+        function init() {
+            var _aCircle = [],
+              _stage,
+              _sf = new ShapeFactory();
+
+            function registerShape(name, cls) {
+                _sf.register(name, cls);
+            }
+
+            function setStage(stg) {
+                _stage = stg;
+            }
+
+            function _position(circle, left, top) {
+                circle.move(left, top);
+            }
+
+            function create(left, top, type) {
+                var circle = _sf.create(type);
+                circle.move(left, top);
+                return circle;
+            }
+
+            function add(circle) {
+                _stage.add(circle.get());
+                _aCircle.push(circle);
+            }
+
+            function index() {
+                return _aCircle.length;
+            }
+
+            return {
+                index: index,
+                create: create,
+                add: add,
+                register: registerShape,
+                setStage: setStage
+            };
+        }
+
+        return {
+            getInstance: function () {
+                if (!instance) {
+                    instance = init();
                 }
-              function _position(circle, left, top) {
-                  circle.move(left, top);
-              }
-
-              function create(left, top, type) {
-                  var circle = _sf.create(type);
-                  circle.move(left, top);
-                  return circle;
-              }
-
-              function add(circle) {
-                  _stage.append(circle.get());
-                  _aCircle.push(circle);
-              }
-
-              function index() {
-                  return _aCircle.length;
-              }
-
-              return {
-                  index: index,
-                  create: create,
-                  add: add,
-                  register: registerShape,
-                  setStage: setStage
-              };
-          }
-
-          return {
-              getInstance: function () {
-                  if (!instance) {
-                      instance = init();
-                  }
-                  return instance;
-              }
-          };
-      })();
+                return instance;
+            }
+        };
+    })();
 
     $(win.document).ready(function () {
         var cg = CircleGeneratorSingleton.getInstance();
         cg.register('red', RedCircleBuilder);
         cg.register('blue', BlueCircleBuilder);
-        cg.setStage($('.advert'));
+        cg.setStage(new StageAdapter('.advert'));
         $('.advert').click(function (e) {
             var circle = cg.create(e.pageX - 25, e.pageY - 25, 'blue');
             cg.add(circle);
