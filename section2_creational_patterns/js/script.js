@@ -81,8 +81,19 @@
         item.addClass(this.SIG + this.index);
         this.context.append(item);
     };
-    StageAdapter.prototype.remove = function (item) {
-        this.context.remove('.' + this.SIG + this.index);
+    StageAdapter.prototype.remove = function (index) {
+        this.context.remove('.' + this.SIG + index);
+    };
+
+    function CompositeController(arr) {
+        this.arr = arr;
+    }
+    CompositeController.prototype.action = function(act) {
+        var args = Array.prototype.slice.call( arguments);
+        args.shift();
+      for(var item in this.arr) {
+          this.arr[item][act].apply(this.arr[item], args);
+      }
     };
 
     //SINGLETON GENERATOR
@@ -92,7 +103,8 @@
         function init() {
             var _aCircle = [],
               _stage,
-              _sf = new ShapeFactory();
+              _sf = new ShapeFactory(),
+              _cc = new CompositeController(_aCircle);
 
             function registerShape(name, cls) {
                 _sf.register(name, cls);
@@ -111,7 +123,12 @@
                 circle.move(left, top);
                 return circle;
             }
-
+            function tint(clr) {
+                _cc.action('color', clr);
+            }
+            function move(left, top) {
+                _cc.action('move', left, top);
+            }
             function add(circle) {
                 _stage.add(circle.get());
                 _aCircle.push(circle);
@@ -126,7 +143,9 @@
                 create: create,
                 add: add,
                 register: registerShape,
-                setStage: setStage
+                setStage: setStage,
+                tint: tint,
+                move: move
             };
         }
 
@@ -150,10 +169,16 @@
             cg.add(circle);
         });
         $(win.document).keypress(function (e) {
-            if (e.key === 'a') {
+            if (e.key === 'r') {
                 var circle = cg.create(Math.floor(Math.random() * 600),
                   Math.floor(Math.random() * 600), 'red');
                 cg.add(circle);
+            } else if(e.key === 'b') {
+                cg.tint('black');
+            } else if(e.key === 'a') {
+                cg.move('-=5px', '+=0px');
+            }else if(e.key === 's') {
+                cg.move('+=5px', '+=0px');
             }
 
         });
