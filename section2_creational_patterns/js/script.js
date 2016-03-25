@@ -1,38 +1,58 @@
 (function (win, $) {
+    function clone(src, out) {
+        for (var attr in src.prototype) {
+            out.prototype[attr] = src.prototype[attr];
+        }
+    }
+
     //CIRCLE
     function Circle() {
         this.item = $('<div class="circle"></div>');
     }
-    Circle.prototype.move = function(left, top) {
+
+    Circle.prototype.move = function (left, top) {
         this.item.css('left', left);
         this.item.css('top', top);
     };
-    Circle.prototype.color = function(color) {
-      this.item.css('background', color);
+    Circle.prototype.color = function (color) {
+        this.item.css('background', color);
     };
-    Circle.prototype.get = function() {
+    Circle.prototype.get = function () {
         return this.item;
     };
+
+    //RECTANGLE
+    function Rect() {
+        this.item = $('<div class="rect"></div>');
+    }
+    clone(Circle, Rect);
+
     //RED CIRCLE
     function RedCircleBuilder() {
         this.item = new Circle();
         this.init();
     }
+
     RedCircleBuilder.prototype.init = function () {
 
     };
-    RedCircleBuilder.prototype.get = function() {
-       return this.item;
+    RedCircleBuilder.prototype.get = function () {
+        return this.item;
     };
     //BLUE CIRCLE
     function BlueCircleBuilder() {
         this.item = new Circle();
         this.init();
     }
+
     BlueCircleBuilder.prototype.init = function () {
         this.item.color('blue');
+        var rect = new Rect();
+        rect.color('yellow');
+        rect.move(40, 40);
+        this.item.get().append(rect.get());
     };
-    BlueCircleBuilder.prototype.get = function() {
+    BlueCircleBuilder.prototype.get = function () {
         return this.item;
     };
 
@@ -41,8 +61,8 @@
           this.create = function (type) {
               return new this.types[type]().get();
           };
-          this.register = function(type, cls) {
-              if(cls.prototype.init && cls.prototype.get) {
+          this.register = function (type, cls) {
+              if (cls.prototype.init && cls.prototype.get) {
                   this.types[type] = cls;
               }
           };
