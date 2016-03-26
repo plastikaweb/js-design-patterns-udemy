@@ -19,7 +19,7 @@
         this.item.css('left', left);
         this.item.css('top', top);
     };
-    Circle.prototype.get = function() {
+    Circle.prototype.get = function () {
         return this.item;
     };
 
@@ -37,18 +37,18 @@
 
     clone(Circle, Rect);
 
+    function binder(scope, func) {
+        return function () {
+            return func.apply(scope, arguments);
+        };
+    }
+
     function shapeFacade(shp) {
         return {
-            color: function (clr) {
-                shp.color(clr);
-            },
-            move: function (x, y) {
-                shp.move(x, y);
-            },
-            getID: function() {
-                return shp.getID();
-            }
-        }
+            color: binder(shp, shp.color),
+            move: binder(shp, shp.move),
+            getID: binder(shp, shp.getID)
+        };
     }
 
     function selfDestructDecorator(obj) {
