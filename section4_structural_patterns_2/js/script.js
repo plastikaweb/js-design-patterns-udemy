@@ -13,22 +13,43 @@
 
     Circle.prototype.color = function (clr) {
         this.item.css('background', clr);
-    }
+    };
 
     Circle.prototype.move = function (left, top) {
         this.item.css('left', left);
         this.item.css('top', top);
     };
-
-    Circle.prototype.get = function () {
+    Circle.prototype.get = function() {
         return this.item;
-    }
+    };
+
+    Circle.prototype.setID = function (id) {
+        this.id = id;
+    };
+
+    Circle.prototype.getID = function () {
+        return this.id;
+    };
 
     function Rect() {
         this.item = $('<div class="rect"></div>');
     }
 
     clone(Circle, Rect);
+
+    function shapeFacade(shp) {
+        return {
+            color: function (clr) {
+                shp.color(clr);
+            },
+            move: function (x, y) {
+                shp.move(x, y);
+            },
+            getID: function() {
+                return shp.getID();
+            }
+        }
+    }
 
     function selfDestructDecorator(obj) {
         obj.item.click(function () {
@@ -83,7 +104,7 @@
             if (cls.prototype.init && cls.prototype.get) {
                 this.types[type] = cls;
             }
-        }
+        };
     };
 
     function Stage(id) {
@@ -100,7 +121,7 @@
 
     Stage.prototype.remove = function (index) {
         this.context.remove('.' + this.SIG + index);
-    }
+    };
 
     function CompositeController(a) {
         this.a = a;
@@ -144,7 +165,9 @@
             function create(left, top, type) {
                 var circle = _sf.create(type);
                 circle.move(left, top);
-                return circle;
+                circle.setID(_aCircle.length);
+                _aCircle.push(circle);
+                return shapeFacade(circle);
             }
 
             function tint(clr) {
@@ -156,8 +179,7 @@
             }
 
             function add(circle) {
-                _stage.add(circle.get());
-                _aCircle.push(circle);
+                _stage.add(_aCircle[circle.getID()].get());
             }
 
             function index() {
@@ -183,7 +205,7 @@
 
                 return instance;
             }
-        }
+        };
 
     })();
 
