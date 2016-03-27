@@ -284,36 +284,85 @@
 
     })();
 
+
+    function RedState(obj) {
+        var on = 'red',
+          off = 'rgba(255,0,0,.25',
+          _nextState;
+
+        this.nextState = function (ns) {
+            _nextState = ns;
+        };
+
+        this.start = function () {
+            obj.color(on);
+            setTimeout(binder(_nextState, _nextState.start), 1000);
+            setTimeout(function () {
+                obj.color(off);
+            }, 3000);
+        };
+    }
+
+    function YellowState(obj) {
+        var on = 'yellow',
+          off = 'rgba(255,255,0,.25',
+          _nextState;
+
+        this.nextState = function (ns) {
+            _nextState = ns;
+        };
+
+        this.start = function () {
+            obj.color(on);
+            setTimeout(function () {
+                obj.color(off);
+                _nextState.start();
+            }, 2000);
+        };
+    }
+
+    function GreenState(obj) {
+        var on = 'green',
+          off = 'rgba(0,255,0,.25',
+          _nextState;
+
+        this.nextState = function (ns) {
+            _nextState = ns;
+        };
+
+        this.start = function () {
+            obj.color(on);
+            setTimeout(function () {
+                obj.color(off);
+                _nextState.start();
+            }, 4000);
+        };
+    }
+
+
     $(win.document).ready(function () {
         var cg = CircleGeneratorSingleton.getInstance();
-        cg.register('red', RedCircleBuilder);
-        cg.register('blue', BlueCircleBuilder);
+        cg.register('circle', RedCircleBuilder);
         cg.setStage(new Stage('.advert'));
-        $('.advert').click(function (e) {
-            var circle = cg.create(e.pageX - 25, e.pageY - 25, "red");
 
-            cg.add(circle);
-            cg.chainTint(5);
-            flyWeightFader($(e.target));
-        });
+        var red = cg.create(400, 250, 'circle');
+        cg.add(red);
+        var yellow = cg.create(400, 325, 'circle');
+        yellow.color('rgba(255,255,0, .25');
+        cg.add(yellow);
+        var green = cg.create(400, 400, 'circle');
+        green.color('rgba(0,255,0, .25');
+        cg.add(green);
 
-        $(document).keypress(function (e) {
-            if (e.key === 'a') {
-                var circle = cg.create(Math.floor(Math.random() * 600),
-                  Math.floor(Math.random() * 600),
-                  "blue");
+        var rs = new RedState(red),
+          ys = new YellowState(yellow),
+          gs = new GreenState(green);
 
-                cg.add(circle);
-            } else if (e.key === 't') {
-                cg.tint('black');
-            } else if (e.key === 'ArrowRight') {
-                cg.move("+=5px", "+=0px");
-            } else if (e.key === 'ArrowLeft') {
-                cg.move("-=5px", "+=0px");
-            }
+        rs.nextState(ys);
+        ys.nextState(gs);
+        gs.nextState(rs);
 
-        });
-
+        rs.start();
     });
 
 })(window, jQuery);
