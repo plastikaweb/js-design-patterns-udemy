@@ -23,6 +23,23 @@
         return this.item;
     };
 
+    Circle.prototype.next = function (shp) {
+        if (shp) {
+            this.nextShape = shp;
+        }
+        return this.nextShape;
+    };
+
+    Circle.prototype.chainDo = function(action, args, count) {
+      this[action].apply(this, args);
+        if(count && this.nextShape) {
+            setTimeout(binder(this, function() {
+                this.nextShape.chainDo(action, args, --count);
+            }), 20);
+
+        }
+    };
+
     Circle.prototype.setID = function (id) {
         this.id = id;
     };
@@ -163,13 +180,24 @@
             }
 
             function create(left, top, type) {
-                var circle = _sf.create(type);
+                var circle = _sf.create(type),
+                  index = _aCircle.length-1;
                 circle.move(left, top);
                 circle.setID(_aCircle.length);
                 _aCircle.push(circle);
+                if(index !== -1) {
+                    _aCircle[index].next(circle);
+                }
                 return shapeFacade(circle);
             }
 
+            function chainTint(count) {
+                var index = Math.max(0,_aCircle.length-count),
+                  clr = '#' + Math.floor(Math.random()*255).toString(16) +
+                    Math.floor(Math.random()*255).toString(16) +
+                    Math.floor(Math.random()*255).toString(16);
+                _aCircle[index].chainDo('color', [clr], count);
+            }
             function tint(clr) {
                 _cc.action('color', clr);
             }
@@ -193,7 +221,8 @@
                 register: registerShape,
                 setStage: setStage,
                 tint: tint,
-                move: move
+                move: move,
+                chainTint: chainTint
             };
         }
 
@@ -218,7 +247,8 @@
             var circle = cg.create(e.pageX - 25, e.pageY - 25, "red");
 
             cg.add(circle);
-            flyWeightFader(circle.get());
+            cg.chainTint(5);
+            flyWeightFader($(e.target));
         });
 
         $(document).keypress(function (e) {
