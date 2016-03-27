@@ -30,10 +30,10 @@
         return this.nextShape;
     };
 
-    Circle.prototype.chainDo = function(action, args, count) {
-      this[action].apply(this, args);
-        if(count && this.nextShape) {
-            setTimeout(binder(this, function() {
+    Circle.prototype.chainDo = function (action, args, count) {
+        this[action].apply(this, args);
+        if (count && this.nextShape) {
+            setTimeout(binder(this, function () {
                 this.nextShape.chainDo(action, args, --count);
             }), 20);
 
@@ -77,6 +77,51 @@
         };
     }
 
+    function eventDispatcherDecorator(o) {
+        var list = {};
+        o.addEvent = function (type, listener) {
+            if (!list[type]) {
+                list[type] = [];
+            }
+            if (list[type].indexOf(listener) === -1) {
+                list[type].push(listener);
+            }
+        };
+        o.removeEvent = function (type, listener) {
+            var a = list[type];
+            if (a) {
+                var index = a.indexOf(listener);
+                if (index > -1) {
+                    a.splice(index, 1);
+                }
+            }
+        };
+        o.dispatchEvent = function (e) {
+            var aList = list[e.type];
+            if (aList) {
+                if (!e.target) {
+                    e.target = this;
+                }
+                for (var i in aList) {
+                    aList[i](e);
+                }
+            }
+        };
+    }
+
+    var o = {},
+      fun = function () {
+          console.log('it is over 2');
+      };
+    eventDispatcherDecorator(o);
+    o.addEvent('over', function (e) {
+        console.log(e);
+        console.log('it is over');
+    });
+    o.addEvent('over', fun);
+    o.addEvent('over', fun);
+    o.removeEvent('over', fun);
+    o.dispatchEvent({type: 'over'});
 
     function RedCircleBuilder() {
         this.item = new Circle();
@@ -181,23 +226,24 @@
 
             function create(left, top, type) {
                 var circle = _sf.create(type),
-                  index = _aCircle.length-1;
+                  index = _aCircle.length - 1;
                 circle.move(left, top);
                 circle.setID(_aCircle.length);
                 _aCircle.push(circle);
-                if(index !== -1) {
+                if (index !== -1) {
                     _aCircle[index].next(circle);
                 }
                 return shapeFacade(circle);
             }
 
             function chainTint(count) {
-                var index = Math.max(0,_aCircle.length-count),
-                  clr = '#' + Math.floor(Math.random()*255).toString(16) +
-                    Math.floor(Math.random()*255).toString(16) +
-                    Math.floor(Math.random()*255).toString(16);
+                var index = Math.max(0, _aCircle.length - count),
+                  clr = '#' + Math.floor(Math.random() * 255).toString(16) +
+                    Math.floor(Math.random() * 255).toString(16) +
+                    Math.floor(Math.random() * 255).toString(16);
                 _aCircle[index].chainDo('color', [clr], count);
             }
+
             function tint(clr) {
                 _cc.action('color', clr);
             }
